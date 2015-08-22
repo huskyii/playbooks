@@ -1,0 +1,75 @@
+# vim: ft=ansible
+---
+
+- hosts: yaya
+  vars:
+    user: jiang
+  remote_user: root
+  become_user: "{{ user }}"
+
+  tasks:
+  - name: install git
+    apt: update_cache=yes name=git state=latest
+  - name: install vim
+    apt: update_cache=yes name=vim state=latest
+  - name: install zsh
+    apt: update_cache=yes name=zsh state=latest
+  - name: install curl
+    apt: update_cache=yes name=curl state=latest
+  - name: install htop
+    apt: update_cache=yes name=htop state=latest
+  - name: install opam
+    apt: update_cache=yes name=opam state=latest
+  - name: install sudo
+    apt: update_cache=yes name=sudo state=latest
+  - name: install cmake
+    apt: update_cache=yes name=cmake state=latest
+  - name: install clang
+    apt: update_cache=yes name=clang state=latest
+  - name: install golang
+    apt: update_cache=yes name=golang state=latest
+  - name: install python-dev
+    apt: update_cache=yes name=python-dev state=latest
+  - name: install build-essential
+    apt: update_cache=yes name=build-essential state=latest
+  - name: install ag(the silver searcher)
+    apt: update_cache=yes name=silversearcher-ag state=latest
+
+  - name: create account and generate ssh key
+    user: name="{{ user }}" generate_ssh_key=yes ssh_key_bits=4096 password=!azxsw2
+
+  - name: checkout dotfiles
+    become: yes
+    git: repo=https://github.com/jiang42/dotfiles.git dest=~/.dotfiles
+
+  - name: checkout Vundle.vim
+    become: yes
+    git: repo=https://github.com/VundleVim/Vundle.vim.git dest=~/.vim/bundle/Vundle.vim
+
+  - name: checkout oh-my-zsh
+    become: yes
+    git: repo=https://github.com/robbyrussell/oh-my-zsh.git dest=~/.oh-my-zsh depth=1
+
+  - name: link vimrc
+    become: yes
+    file: src=~/.dotfiles/vimrc dest=~/.vimrc state=link
+
+  - name: link zshrc
+    become: yes
+    file: src=~/.dotfiles/zshrc dest=~/.zshrc state=link
+
+  #- name: link zshenv
+    #become: yes
+    #file: src=~/.dotfiles/zshenv dest=~/.zshenv state=link
+
+  - name: change default shell to zsh
+    shell: chsh -s `which zsh` "{{ user }}"
+
+  - name: install vim plugins
+    become: yes
+    shell: vim +PluginInstall +qall
+
+  - name: install YouCompleteMe
+    become: yes
+    shell: ~/.vim/bundle/YouCompleteMe/install.sh --clang-completer --gocode-completer
+
